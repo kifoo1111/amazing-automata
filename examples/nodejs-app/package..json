@@ -1,0 +1,8 @@
+{
+  "name": "test-nodejs-app",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo 'Тесты прошли успешно!' && exit 0",
+    "build": "echo 'Сборка завершена!'"
+  }
+}
