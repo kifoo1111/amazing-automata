@@ -1,0 +1,17 @@
+# Конфигурация для кастомных проектов
+# Раскомментируйте и измените под свой проект
+
+# build_command: "make build"
+# test_command: "make test" 
+# deploy_command: "scp dist/* user@server:/path/"
+# source_dir: "src/"
+
+# Пример для Makefile проекта:
+# build_command: "make all"
+# test_command: "make test"
+# deploy_command: "make deploy"
+
+# Пример для Python с виртуальным окружением:
+# build_command: "python -m venv venv && source venv/bin/activate && pip install -r requirements.txt"
+# test_command: "source venv/bin/activate && pytest"
+# deploy_command: "source venv/bin/activate && python deploy.py"

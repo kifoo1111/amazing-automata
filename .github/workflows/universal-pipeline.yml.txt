@@ -1,0 +1,87 @@
+name: Amazing Automata - Universal CI/CD
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  detect-project:
+    name: 🔍 Обнаружение типа проекта
+    runs-on: ubuntu-latest
+    outputs:
+      project-type: ${{ steps.detect.outputs.project-type }}
+    steps:
+      - name: 📥 Загружаем код
+        uses: actions/checkout@v4
+        
+      - name: 🔍 Определяем тип проекта
+        id: detect
+        run: |
+          chmod +x ./scripts/detect-project-type.sh
+          ./scripts/detect-project-type.sh
+
+  build-and-test:
+    name: 🏗️ Сборка и тестирование
+    needs: detect-project
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Загружаем код
+        uses: actions/checkout@v4
+        
+      - name: 🔧 Настраиваем окружение
+        run: |
+          chmod +x ./scripts/*.sh
+          
+      - name: 🏗️ Сборка проекта
+        run: |
+          ./scripts/build-project.sh "${{ needs.detect-project.outputs.project-type }}"
+          
+      - name: 🧪 Запуск тестов
+        run: |
+          ./scripts/run-tests.sh "${{ needs.detect-project.outputs.project-type }}"
+
+  security-scan:
+    name: 🔒 Сканирование безопасности
+    needs: detect-project
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Загружаем код
+        uses: actions/checkout@v4
+        
+      - name: 🔒 Сканирование зависимостей
+        run: |
+          chmod +x ./scripts/security-scan.sh
+          ./scripts/security-scan.sh "${{ needs.detect-project.outputs.project-type }}"
+
+  deploy:
+    name: 🚀 Деплой
+    needs: [detect-project, build-and-test, security-scan]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: 📥 Загружаем код
+        uses: actions/checkout@v4
+        
+      - name: 🚀 Деплой приложения
+        run: |
+          chmod +x ./scripts/deploy.sh
+          ./scripts/deploy.sh "${{ needs.detect-project.outputs.project-type }}"
+
+  success-notification:
+    name: ✅ Уведомление об успехе
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: 📢 Уведомляем об успехе
+        run: |
+          echo "🎉 Пайплайн успешно завершен!"
+          echo "Проект: ${{ github.repository }}"
+          echo "Тип: ${{ needs.detect-project.outputs.project-type }}"
+          echo "Коммит: ${{ github.sha }}"
